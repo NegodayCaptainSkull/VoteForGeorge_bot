@@ -1,0 +1,19 @@
+{
+  "name": "voteforgeorge",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon src/index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@grammyjs/types": "^3.15.0",
+    "dotenv": "^16.4.5",
+    "grammy": "^1.31.3",
+    "nodemon": "^3.1.7"
+  }
+}
