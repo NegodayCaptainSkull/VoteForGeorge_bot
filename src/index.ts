@@ -1,9 +1,15 @@
 import { Bot, InlineKeyboard, Keyboard } from 'grammy';
-import dotenv from 'dotenv';
+import express from 'express';
+import * as dotenv from 'dotenv';
 
 dotenv.config();
 
-const bot = new Bot('7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk'!);
+const BOT_TOKEN = '7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk';
+const WEBHOOK_URL = process.env.WEBHOOK_URL!; // Ссылка вашего WebHook
+const PORT = process.env.PORT || 3000;
+
+const bot = new Bot('7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk');
+const app = express();
 const candidateChatId = '1151742630';
 
 enum UserState {
@@ -84,4 +90,13 @@ bot.on('message:text', async (ctx) => {
 });
 
 // Запуск бота
-bot.start();
+app.use(express.json());
+
+app.post(`/${BOT_TOKEN}`, (req, res) => {
+  bot.handleUpdate(req.body, res);
+});
+
+app.listen(PORT, async () => {
+  console.log(`Server running on port ${PORT}`);
+  await bot.api.setWebhook(`${WEBHOOK_URL}/${BOT_TOKEN}`);
+});
