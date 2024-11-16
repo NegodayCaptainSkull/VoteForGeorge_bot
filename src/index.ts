@@ -1,5 +1,5 @@
-import { Bot, InlineKeyboard, Keyboard } from 'grammy';
-import express from 'express';
+import { Bot, InlineKeyboard, Keyboard, webhookCallback } from 'grammy';
+import * as express from 'express';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -91,11 +91,9 @@ bot.on('message:text', async (ctx) => {
 
 // Запуск бота
 app.use(express.json());
+app.use(`/${BOT_TOKEN}`, webhookCallback(bot, 'express'));
 
-app.post(`/${BOT_TOKEN}`, (req, res) => {
-  bot.handleUpdate(req.body, res);
-});
-
+// Запуск сервера Express
 app.listen(PORT, async () => {
   console.log(`Server running on port ${PORT}`);
   await bot.api.setWebhook(`${WEBHOOK_URL}/${BOT_TOKEN}`);
