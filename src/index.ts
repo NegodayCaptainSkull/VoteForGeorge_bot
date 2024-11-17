@@ -1,16 +1,18 @@
 import { Bot, InlineKeyboard, Keyboard, webhookCallback } from 'grammy';
-import * as express from 'express';
 import * as dotenv from 'dotenv';
+import * as express from 'express';
 
 dotenv.config();
 
-const BOT_TOKEN = '7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk';
-const WEBHOOK_URL = process.env.WEBHOOK_URL!; // Ссылка вашего WebHook
+const TOKEN = '7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk'
+const bot = new Bot(TOKEN);
+const candidateChatId = '1151742630';
+
 const PORT = process.env.PORT || 3000;
 
-const bot = new Bot('7853001252:AAFK9iSa39ml-2iuZcCGvOjI_NAPYpy7MPk');
 const app = express();
-const candidateChatId = '1151742630';
+app.use(express.json());
+app.use(`/${TOKEN}`, webhookCallback(bot, 'express'));
 
 enum UserState {
   NONE = 'NONE',
@@ -90,11 +92,11 @@ bot.on('message:text', async (ctx) => {
 });
 
 // Запуск бота
-app.use(express.json());
-app.use(`/${BOT_TOKEN}`, webhookCallback(bot, 'express'));
-
-// Запуск сервера Express
 app.listen(PORT, async () => {
-  console.log(`Server running on port ${PORT}`);
-  await bot.api.setWebhook(`${WEBHOOK_URL}/${BOT_TOKEN}`);
+  console.log(`Server is running on port ${PORT}`);
+
+  // Установить URL вебхука
+  const WEBHOOK_URL = `https://voteforgeorge-bot.onrender.com${TOKEN}`; // Замените на Render URL
+  await bot.api.setWebhook(WEBHOOK_URL);
+  console.log(`Webhook set to ${WEBHOOK_URL}`);
 });
