@@ -1,6 +1,6 @@
 import { Bot, InlineKeyboard, Keyboard, webhookCallback } from 'grammy';
 import * as dotenv from 'dotenv';
-import * as express from 'express';
+import express from 'express';
 
 dotenv.config();
 
