@@ -63,13 +63,15 @@ bot.hears('Вступить в команду', async (ctx) => {
 });
 
 bot.hears('Мини-игра', async (ctx) => {
+  const { first_name, username, id } = ctx.from!;
+  const webAppUrl = `https://vote-for-george.vercel.app/?name=${encodeURIComponent(
+    first_name
+  )}&username=${encodeURIComponent(username || '')}&id=${id}`;
+
   await ctx.reply(
     'Добро пожаловать в SchoolCoin кликер! Нажмите кнопку ниже, чтобы открыть игру:',
     {
-      reply_markup: new InlineKeyboard().webApp(
-        'Открыть игру',
-        'https://vote-for-george.vercel.app/' // Ссылка на ваше Web App
-      ),
+      reply_markup: new InlineKeyboard().webApp('Открыть игру', webAppUrl),
     }
   );
 })
