@@ -96,7 +96,7 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 
   // Установить URL вебхука
-  const WEBHOOK_URL = `https://voteforgeorge-bot.onrender.com${TOKEN}`; // Замените на Render URL
+  const WEBHOOK_URL = `https://voteforgeorge-bot.onrender.com/${TOKEN}`; // Замените на Render URL
   await bot.api.setWebhook(WEBHOOK_URL);
   console.log(`Webhook set to ${WEBHOOK_URL}`);
 });
