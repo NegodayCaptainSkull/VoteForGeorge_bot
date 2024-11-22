@@ -68,7 +68,7 @@ bot.command('start', async (ctx) => {
 // Обработчик кнопки "О кандидате"
 bot.hears('О кандидате 👤', async (ctx) => {
   userStates.set(ctx.from!.id, UserState.NONE);
-  await ctx.reply(candidateInfo);
+  await ctx.reply(candidateInfo, { parse_mode: 'MarkdownV2'});
 });
 
 // Обработчик кнопки "Сделать предложение"
