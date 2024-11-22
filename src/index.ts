@@ -46,7 +46,7 @@ const candidateInfo = `
 💪
 `;
 
-const escapedText = candidateInfo.replace(/([!.\-])/g, '\\$1');
+const escapedText = candidateInfo.replace(/([\\`*_{}\[\]()#+\-.!])/g, '\\$1');
 
 // Главная команда /start с клавиатурой кнопок
 bot.command('start', async (ctx) => {
