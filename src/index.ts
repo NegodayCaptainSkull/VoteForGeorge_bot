@@ -108,12 +108,22 @@ bot.on('message', async (ctx) => {
 
   const replyToMessage = ctx.message?.reply_to_message;
 
-  if (ctx.chat.id.toString() === candidateChatId && replyToMessage?.from) {
-    const userId = replyToMessage.from.id; // Получаем ID пользователя, который изначально отправил сообщение
-    const userTag = `@${replyToMessage.from.username || replyToMessage.from.first_name || 'Пользователь'}`;
-    const responseText = ctx.message?.text
-    await bot.api.sendMessage(replyToMessage.from?.id, `📩 Ответ от Гоши Мкртчяна:\n\n${responseText}`)
-    await ctx.reply(`✅ Ответ пользователю с ID ${userId} (${userTag}) был успешно отправлен.`);
+  if (ctx.chat.id.toString() === candidateChatId && replyToMessage) {
+    const forwardedMessage = replyToMessage as unknown as { forward_from?: { id: number; username?: string; first_name?: string; is_bot?: boolean } };
+
+    if (forwardedMessage.forward_from && !forwardedMessage.forward_from.is_bot) {
+      const userId = forwardedMessage.forward_from.id; // ID пользователя, который изначально отправил сообщение
+      const userTag = `@${forwardedMessage.forward_from.username || forwardedMessage.forward_from.first_name || 'Пользователь'}`;
+      const responseText = ctx.message?.text;
+
+      try {
+        await bot.api.sendMessage(userId, `📩 Ответ от Гоши Мкртчяна:\n\n${responseText}`);
+        await ctx.reply(`✅ Ответ пользователю ${userTag} (ID: ${userId}) успешно отправлен.`);
+      } catch (error) {
+        console.error('Ошибка при отправке сообщения пользователю:', error);
+        await ctx.reply(`❌ Не удалось отправить сообщение пользователю ${userTag} (ID: ${userId}).`);
+      }
+    }
   }
 
   if (state === UserState.AWAITING_SUGGESTION) {
