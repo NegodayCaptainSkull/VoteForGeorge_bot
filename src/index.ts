@@ -1,6 +1,6 @@
 import { Bot, InlineKeyboard, Keyboard, webhookCallback } from 'grammy';
 import * as dotenv from 'dotenv';
-import express from 'express';
+import express, { response } from 'express';
 
 dotenv.config();
 
@@ -105,6 +105,16 @@ bot.hears('Мини-игра 🎮', async (ctx) => {
 // Обработчик текста от пользователя
 bot.on('message', async (ctx) => {
   const state = userStates.get(ctx.from!.id) || UserState.NONE;
+
+  const replyToMessage = ctx.message?.reply_to_message;
+
+  if (ctx.chat.id.toString() === candidateChatId && replyToMessage?.from) {
+    const userId = replyToMessage.from.id; // Получаем ID пользователя, который изначально отправил сообщение
+    const userTag = `@${replyToMessage.from.username || replyToMessage.from.first_name || 'Пользователь'}`;
+    const responseText = ctx.message?.text
+    await bot.api.sendMessage(replyToMessage.from?.id, `📩 Ответ от Гоши Мкртчяна:\n\n${responseText}`)
+    await ctx.reply(`✅ Ответ пользователю с ID ${userId} (${userTag}) был успешно отправлен.`);
+  }
 
   if (state === UserState.AWAITING_SUGGESTION) {
     await bot.api.forwardMessage(candidateChatId, ctx.chat.id, ctx.message.message_id);
