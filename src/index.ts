@@ -109,6 +109,7 @@ bot.on('message', async (ctx) => {
   const replyToMessage = ctx.message?.reply_to_message;
 
   if (ctx.chat.id.toString() === candidateChatId && replyToMessage) {
+    userStates.set(ctx.chat.id, UserState.NONE)
     const forwardedMessage = replyToMessage as unknown as { forward_from?: { id: number; username?: string; first_name?: string; is_bot?: boolean } };
 
     if (forwardedMessage.forward_from && !forwardedMessage.forward_from.is_bot) {
@@ -123,10 +124,10 @@ bot.on('message', async (ctx) => {
         console.error('Ошибка при отправке сообщения пользователю:', error);
         await ctx.reply(`❌ Не удалось отправить сообщение пользователю ${userTag} (ID: ${userId}).`);
       }
+    }  else {
+      await ctx.reply('❗ Вы отвечаете на сообщение, которое не переслано от пользователя. Пожалуйста, выберите правильное сообщение.');
     }
-  }
-
-  if (state === UserState.AWAITING_SUGGESTION) {
+  } else if (state === UserState.AWAITING_SUGGESTION) {
     await bot.api.forwardMessage(candidateChatId, ctx.chat.id, ctx.message.message_id);
     await ctx.reply('🎉 Спасибо за твою идею! Я получил твоё сообщение и обязательно его рассмотрю. Вместе мы сделаем этот день незабываемым! 💪');
     userStates.set(ctx.from!.id, UserState.NONE);
