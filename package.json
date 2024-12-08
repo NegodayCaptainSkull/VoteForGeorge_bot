@@ -16,6 +16,7 @@
     "@grammyjs/types": "^3.15.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "firebase": "^11.0.2",
     "grammy": "^1.31.3",
     "nodemon": "^3.1.7"
   },

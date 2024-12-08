@@ -1,6 +1,22 @@
 import { Bot, InlineKeyboard, Keyboard, webhookCallback } from 'grammy';
 import * as dotenv from 'dotenv';
 import express, { response } from 'express';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, ref, get, set, update, child } from 'firebase/database';
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDHWa8wMR2oXJkI5C8IxYLI8Z050ZKJT-M",
+  authDomain: "vote-for-george.firebaseapp.com",
+  databaseURL: "https://vote-for-george-default-rtdb.firebaseio.com",
+  projectId: "vote-for-george",
+  storageBucket: "vote-for-george.firebasestorage.app",
+  messagingSenderId: "284314274130",
+  appId: "1:284314274130:web:da18f438da4b09b9df528b"
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getDatabase(firebaseApp);
+
 
 dotenv.config();
 
@@ -46,10 +62,94 @@ const candidateInfo = `
 💪
 `;
 
+async function checkIfNewUser(userId: number) {
+  const userRef = ref(db, `users/${userId}`);
+  const snapshot = await get(userRef);
+  return !snapshot.exists(); // Если пользователь не существует, возвращаем true
+}
+
+async function registerNewUser(userId: number, referrerId: string) {
+  const userRef = ref(db, `users/${userId}`);
+
+  // Сохраняем пользователя с ID и реферером
+  await set(userRef, {
+    id: userId,
+    referrer: referrerId || null,
+    referrals: [] // Пустой массив для его рефералов
+  });
+
+  // Если есть реферер, обновляем его данные
+  if (referrerId) {
+    const referrerRef = ref(db, `users/${referrerId}`);
+    const snapshot = await get(referrerRef);
+
+    if (snapshot.exists()) {
+      const referrerData = snapshot.val();
+      const updatedReferrals = referrerData.referrals || [];
+      updatedReferrals.push(userId);
+
+      await update(referrerRef, {
+        referrals: updatedReferrals
+      });
+    }
+  }
+}
+
+const getUserTag = async (userId: string | number) => {
+  try {
+    // Преобразуем userId в строку, если это число
+    const chat = await bot.api.getChat(userId.toString());
+    const name = chat.username
+      ? `@${chat.username}` // Если у пользователя есть username, используем его
+      : chat.first_name; // Иначе используем имя
+    
+    return name;
+  } catch (error) {
+    console.error('Ошибка при получении информации о пользователе:', error);
+    return 'неизвестный пользователь'; // Возвращаем placeholder в случае ошибки
+  }
+};
+
 // Главная команда /start с клавиатурой кнопок
 bot.command('start', async (ctx) => {
+  const args = ctx.match?.split(' ') || [];
+  const referrerId = args[1]; // ID реферера из параметра start
+  const userId = ctx.from!.id;
+
+  // Проверяем, если пользователь новый
+  const isNewUser = await checkIfNewUser(userId);
+
+  if (isNewUser) {
+    if (referrerId) {
+      // Сохраняем реферера и пользователя
+      await registerNewUser(userId, referrerId);
+
+      await ctx.reply(
+        `Привет! Вы были приглашены пользователем с ID ${getUserTag(referrerId)}. Спасибо за присоединение!`
+      );
+
+      // Уведомляем реферера
+      try {
+        await bot.api.sendMessage(
+          referrerId,
+          `🎉 У вас новый реферал! Пользователь с ID ${getUserTag(userId)} присоединился по вашей ссылке.`
+        );
+      } catch (error) {
+        console.error('Ошибка при уведомлении реферера:', error);
+      }
+    } else {
+      await ctx.reply('Привет! Добро пожаловать в бота.');
+    }
+
+    // Зарегистрировать нового пользователя
+    await registerNewUser(userId, referrerId);
+  } else {
+    await ctx.reply('Добро пожаловать обратно!');
+  }
+
+  // Вывести главное меню
   await ctx.reply(
-    'Добро пожаловать! Выберите опцию ниже:',
+    'Выберите опцию ниже:',
     {
       reply_markup: new Keyboard()
         .text('О кандидате 👤')
@@ -60,10 +160,11 @@ bot.command('start', async (ctx) => {
         .row()
         .text('Отправить музыку 🎵')
         .row()
-        .text('Мини-игра 🎮')
+        .text('Мини-игра 🎮'),
     }
   );
 });
+
 
 // Обработчик кнопки "О кандидате"
 bot.hears('О кандидате 👤', async (ctx) => {
