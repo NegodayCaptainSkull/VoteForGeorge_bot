@@ -62,20 +62,22 @@ const candidateInfo = `
 💪
 `;
 
+// Проверяем, является ли пользователь новым
 async function checkIfNewUser(userId: number) {
   const userRef = ref(db, `users/${userId}`);
   const snapshot = await get(userRef);
   return !snapshot.exists(); // Если пользователь не существует, возвращаем true
 }
 
-async function registerNewUser(userId: number, referrerId: string) {
+// Регистрация нового пользователя
+async function registerNewUser(userId: number, referrerId: string | null) {
   const userRef = ref(db, `users/${userId}`);
 
-  // Сохраняем пользователя с ID и реферером
+  // Сохраняем данные нового пользователя
   await set(userRef, {
     id: userId,
     referrer: referrerId || null,
-    referrals: [] // Пустой массив для его рефералов
+    referrals: {}, // Пустой объект для рефералов
   });
 
   // Если есть реферер, обновляем его данные
@@ -85,15 +87,18 @@ async function registerNewUser(userId: number, referrerId: string) {
 
     if (snapshot.exists()) {
       const referrerData = snapshot.val();
-      const updatedReferrals = referrerData.referrals || [];
-      updatedReferrals.push(userId);
+      const updatedReferrals = referrerData.referrals || {};
+
+      // Добавляем нового реферала в объект, изначально с 0 монет
+      updatedReferrals[userId] = 0;
 
       await update(referrerRef, {
-        referrals: updatedReferrals
+        referrals: updatedReferrals,
       });
     }
   }
 }
+
 
 const getUserTag = async (userId: string | number) => {
   try {
